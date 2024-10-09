@@ -1,4 +1,5 @@
 import time
+import os # adicione esta linha
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 from telethon import TelegramClient
