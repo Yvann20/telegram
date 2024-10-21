@@ -1,17 +1,17 @@
-Explicação dos Pacotes
-
-python-telegram-bot: Biblioteca para interagir com a API do Telegram usando o Bot API. A versão 20.0b4 foi utilizada por você no código, que é uma versão beta mais recente.
-
-telethon: Biblioteca que permite interagir com o Telegram como um cliente (usuário), permitindo funcionalidades que não são possíveis apenas com o Bot API. A versão 1.24.0 é uma versão estável que você pode usar.
-
-
-
-
-
-
-
+# requirements.txt Biblioteca para interagir com a API do 
+# Telegram
+python-telegram-bot==20.0
+# Biblioteca que permite interagir com o Telegram como um 
+# cliente, essencial para autenticação e envio de 
+# mensagens
+telethon==1.37.0
+# Para agendar tarefas de forma simples e eficiente
+apscheduler==3.8.1
+# Para carregar variáveis de ambiente do arquivo .env, 
+# garantindo segurança para credenciais sensíveis
+python-dotenv==1.0.0
+# Para manipulação de datas e horários
+python-dateutil==2.9.0
+# Para gerenciamento de tarefas assíncronas, utilizado em 
+# conjunto com outras bibliotecas
 anyio==4.6.0
-python-dateutil==2.9.0.post0
-python-telegram-bot
-Telethon==1.37.0
-

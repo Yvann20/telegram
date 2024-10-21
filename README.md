@@ -1,61 +1,25 @@
-# Meu Bot Telegram
+# Bot Telegram Campaigner
 
-Este é um bot do Telegram que permite encaminhar mensagens de um chat para outros grupos, preservando a formatação e emojis Premium. O bot é configurável e pode enviar mensagens em intervalos definidos pelo usuário.
+Este é um bot do Telegram desenvolvido em Python, que permite aos usuários criar campanhas de encaminhamento de mensagens em grupos do Telegram onde são administradores. O bot usa as bibliotecas `python-telegram-bot` e `telethon` para interagir com a API do Telegram, além de um agendador para automatizar o encaminhamento de mensagens.
 
 ## Funcionalidades
 
-- **Encaminhamento de Mensagens**: O bot pode encaminhar mensagens de um chat específico para grupos em que você está.
-- **Configuração de Intervalos**: Permite definir um intervalo em minutos para o encaminhamento das mensagens.
-- **Formatação de Mensagens**: Suporta envio de mensagens formatadas em Markdown ou HTML.
+- **Autenticação**: O bot autentica usuários usando um número de telefone e um código recebido via SMS.
+- **Listagem de Grupos**: Permite ao usuário listar todos os grupos em que é administrador.
+- **Encaminhamento de Mensagens**: Os usuários podem configurar uma campanha para encaminhar mensagens de um chat específico para múltiplos grupos.
+- **Configuração de Intervalos**: Permite definir um intervalo de tempo em minutos para o encaminhamento das mensagens.
+- **Estatísticas**: Exibe estatísticas sobre mensagens enviadas e campanhas ativas.
+- **Links de Referência**: Gera um link de referência personalizado para cada usuário.
 
-## Requisitos
+## Pré-requisitos
 
-Para executar este bot, você precisará de:
+Antes de começar, você precisa ter o Python 3 instalado em seu ambiente. É recomendável usar um ambiente virtual para gerenciar as dependências do projeto.
 
-- Python 3.x
-- As seguintes bibliotecas:
-  - `python-telegram-bot`
-  - `telethon`
+## Instalação
 
-Você pode instalar as dependências usando o `pip`:
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/Yvann20/bot_telegram2024.git
+   cd bot_telegram2024
 
-```bash
-pip install python-telegram-bot telethon
-
-Configuração
-
-Antes de executar o bot, configure as credenciais no código:
-
-API_ID = 'coloque seu id'  # Seu API ID
-API_HASH = 'sua hash'  # Seu API Hash
-BOT_TOKEN = 'coloque aqui'  # Token do bot
-YOUR_PHONE = 'seu numero'  # Seu número do Telegram
-
-Autenticação
-
-O bot solicitará que você faça a autenticação usando seu número de telefone. Você receberá um código para autenticar o bot.
-
-Comandos
-
-/set_message_link <link>: Configura o link da mensagem que será encaminhada.
-
-/set_interval <minutos>: Define o intervalo em minutos para o encaminhamento das mensagens.
-
-/send_formatted_message: Envia uma mensagem de exemplo com formatação.
-
-
-Execução
-
-Para executar o bot, utilize o seguinte comando:
-
-python bot.py
-
-Após a execução, o bot estará em funcionamento e aguardará comandos.
-
-Contribuições
-
-Sinta-se à vontade para contribuir para este projeto. Faça um fork do repositório, faça suas alterações e envie um pull request!
-
-Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+##  GILDIVAN BRABO

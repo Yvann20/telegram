@@ -1,23 +1,43 @@
+import os
+from dotenv import load_dotenv
 import time
-import os # adicione esta linha
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler, ConversationHandler, MessageHandler, filters
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# Credenciais do bot e do Telegram pessoal
-API_ID = 23129461  # Seu API ID (número inteiro)
-API_HASH = 'b0c258c2960ea95cd0eb10aab621d3d2'  # Seu API Hash
-BOT_TOKEN = '7319901594:AAEsqnyAmiM-kvRciDejjcYs53cUo94J2WE'  # Token do bot
-YOUR_PHONE = '+5511914392234'  # Seu número do Telegram
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
+
+API_ID = os.getenv('API_ID')
+API_HASH = os.getenv('API_HASH')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+YOUR_PHONE = os.getenv('YOUR_PHONE')
 
 client = TelegramClient('session_name', API_ID, API_HASH)
 
+# Estados da conversação
+LINK, INTERVAL, REFERRAL = range(3)
+
 # Armazenar as configurações
 settings = {
-    'message_link': None,  # Link da mensagem a ser encaminhada
-    'interval': 1,  # Intervalo padrão em minutos (pode ser ajustado pelo bot)
+    'message_link': None,
+    'referral_link': None,
+    'user_id': None,
 }
+
+# Armazenar o job atual
+current_job = None
+
+# Estatísticas do bot
+statistics = {
+    'messages_sent': 0,
+    'active_campaigns': 0,
+}
+
+# Agendador para tarefas automatizadas
+scheduler = AsyncIOScheduler()
 
 # Autenticação para enviar mensagens
 async def authenticate():
@@ -31,7 +51,7 @@ async def authenticate():
             password = input('Digite sua senha: ')
             await client.sign_in(YOUR_PHONE, password)
 
-# Função para listar grupos em que a sua conta pessoal está presente
+# Função para listar grupos onde o bot é administrador
 async def list_groups(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_list = []
     async with client:
@@ -41,20 +61,21 @@ async def list_groups(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 participants = await client.get_participants(dialog.entity)
                 if any(participant.id == me.id for participant in participants):
                     group_list.append(dialog.title)
-    
-    if group_list:
-        await update.message.reply_text(f"Grupos em que você está:\n" + "\n".join(group_list))
-    else:
-        await update.message.reply_text("Você não está em nenhum grupo.")
 
-# Função para encaminhar a mensagem preservando formatação e emojis Premium
+    if group_list:
+        await update.message.reply_text(f"Grupos em que você está como administrador:\n" + "\n".join(group_list))
+    else:
+        await update.message.reply_text("Você não está como administrador em nenhum grupo.")
+
+# Função para encaminhar a mensagem
 async def forward_message_with_formatting(context: ContextTypes.DEFAULT_TYPE):
-    async with client:
-        if settings['message_link'] is None:
-            print("Nenhum link de mensagem configurado para encaminhar.")
-            return
-        
-        try:
+    start_time = time.time()  # Início da medição de tempo
+    try:
+        async with client:
+            if settings['message_link'] is None:
+                print("Nenhum link de mensagem configurado para encaminhar.")
+                return
+
             parts = settings['message_link'].split('/')
             chat = parts[-2]
             message_id = int(parts[-1])
@@ -66,58 +87,147 @@ async def forward_message_with_formatting(context: ContextTypes.DEFAULT_TYPE):
                 if dialog.is_group:
                     participants = await client.get_participants(dialog.entity)
                     if any(participant.id == me.id for participant in participants):
-                        await client.forward_messages(dialog.entity, message)
-                        print(f"Mensagem encaminhada para: {dialog.title}")
-        except Exception as e:
-            print(f"Erro ao obter a mensagem: {e}")
+                        try:
+                            await client.forward_messages(dialog.entity, message)
+                            print(f"Mensagem encaminhada para: {dialog.title}")
+                            statistics['messages_sent'] += 1
+                        except Exception as e:
+                            print(f"Erro ao encaminhar para {dialog.title}: {e}")
+    except Exception as e:
+        print(f"Erro ao obter a mensagem: {e}")
+    finally:
+        end_time = time.time()  # Fim da medição de tempo
+        print(f"Duração total do job: {end_time - start_time:.2f} segundos")  # Log da duração total do job
 
-# Comando para definir o link da mensagem a ser encaminhada
+# Função para iniciar a campanha
+async def start_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global statistics
+    statistics['active_campaigns'] += 1
+    query = update.callback_query
+    await query.answer()
+    await query.message.reply_text('Envie o link da mensagem que deseja encaminhar:')
+    print("Esperando o link da mensagem.")
+    return LINK
+
+# Função para definir o link da mensagem
 async def set_message_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    link = context.args[0] if context.args else None
-    if link:
-        settings['message_link'] = link
-        await update.message.reply_text(f"Link da mensagem configurado: {link}")
-    else:
-        await update.message.reply_text("Por favor, forneça um link.")
+    if not update.message:
+        print("Erro: update.message está None")
+        return ConversationHandler.END
 
-# Comando para definir o intervalo
+    print("Link recebido:", update.message.text)
+    settings['message_link'] = update.message.text
+    await update.message.reply_text(f"Link configurado: {settings['message_link']}\nAgora envie o intervalo em minutos:")
+    print(" Esperando o intervalo.")
+    return INTERVAL
+
+# Função para definir o intervalo
 async def set_interval(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if context.args:
-        try:
-            interval = int(context.args[0])
-            settings['interval'] = interval
-            await update.message.reply_text(f"Intervalo configurado para {interval} minutos.")
-            context.application.job_queue.run_repeating(forward_message_with_formatting, interval=interval * 60, first=0)
-        except ValueError:
-            await update.message.reply_text("Por favor, forneça um número válido para o intervalo.")
-    else:
-        await update.message.reply_text("Por favor, forneça um intervalo em minutos.")
+    if not update.message:
+        print("Erro: update.message está None")
+        return ConversationHandler.END
 
-# Comando para enviar mensagem com formatação Markdown ou HTML
-async def send_formatted_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = "Aqui está a mensagem com **negrito**, _itálico_ e [um link](https://example.com)!"
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=message,
-        parse_mode='Markdown'
+    print("Intervalo recebido:", update.message.text)
+
+    # Remover o ponto final , se existir
+    interval_text = update.message.text.strip().rstrip('.')
+    
+    try:
+        interval = int(interval_text)
+    except ValueError:
+        await update.message.reply_text("Por favor, insira um número válido.")
+        return INTERVAL
+
+    global current_job
+    if current_job is not None:
+        current_job.schedule_removal()
+
+    current_job = context.application.job_queue.run_repeating(
+        forward_message_with_formatting, 
+        interval=interval * 60, 
+        first=0
     )
+
+    await update.message.reply_text(f"SUCESSO... CONFIGURADO {interval} MINUTOS")
+    print(f"Job de encaminhamento configurado para {interval} minutos.")
+    return ConversationHandler.END
+
+# Função para cancelar o encaminhamento da campanha
+async def cancel_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global current_job, statistics
+    if current_job is not None:
+        current_job.schedule_removal()
+        current_job = None
+        settings['message_link'] = None
+        statistics['active_campaigns'] -= 1
+        await update.callback_query.answer()
+        await update.callback_query.message.reply_text("Encaminhamento de mensagens cancelado.")
+        print("Encaminhamento de mensagens cancelado.")
+    else:
+        await update.callback_query.answer()
+        await update.callback_query.message.reply_text("Nenhuma campanha ativa para cancelar.")
+        print("Nenhuma campanha ativa para cancelar.")
+
+    return ConversationHandler.END
+
+# Função para cancelar a conversação
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Operação cancelada.")
+    return ConversationHandler.END
+
+# Função para responder ao comando /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("🌊 CRIAR CAMPANHA", callback_data='create_campaign')],
+        [InlineKeyboardButton("❌ CANCELAR CAMPANHA", callback_data='cancel_campaign')],
+        [InlineKeyboardButton("📊 ESTATÍSTICAS DO BOT", callback_data='statistics')],
+        [InlineKeyboardButton("🔗 LINK DE REFERÊNCIA", callback_data='referral')],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text('Bem-vindo! Escolha uma ação:', reply_markup=reply_markup)
+
+# Função para exibir estatísticas do bot
+async def show_statistics(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+    stats_message = (
+        "Estatísticas do Bot:\n"
+        f"Mensagens enviadas: {statistics['messages_sent']}\n"
+        f"Campanhas ativas: {statistics['active_campaigns']}\n"
+    )
+    await update.callback_query.message.reply_text(stats_message)
+
+# Função ppara definir o link de referência
+async def set_referral_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.callback_query.answer()
+    user_id = update.callback_query.from_user.id
+    settings['referral_link'] = f"https://t.me/MEIA_GIL_BOT?start=ref_{user_id}"
+    await update.callback_query.message.reply_text(f"Seu link de referência: {settings['referral_link']}")
 
 # Função principal para configurar o bot
 def main():
     client.loop.run_until_complete(authenticate())
-    print("Bot autenticado e funcionando...")
+    print("BOT CONECTADO")
 
     # Configuração do bot
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    # Adicionar comandos ao bot
-    application.add_handler(CommandHandler("set_message_link", set_message_link))
-    application.add_handler(CommandHandler("set_interval", set_interval))
-    application.add_handler(CommandHandler("send_formatted_message", send_formatted_message))
-    application.add_handler(CommandHandler("list_groups", list_groups))
+    # Configurar o ConversationHandler para o fluxo da campanha
+    campaign_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(start_campaign, pattern='create_campaign')],
+        states={
+            LINK: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_message_link)],
+            INTERVAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, set_interval)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+    )
 
-    # Iniciar o job de envio repetido com intervalo configurável
-    application.job_queue.run_repeating(forward_message_with_formatting, interval=settings['interval'] * 60, first=0)
+    # Adicionar handlers ao bot
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("list_groups", list_groups))
+    application.add_handler(CallbackQueryHandler(show_statistics, pattern='statistics'))
+    application.add_handler(CallbackQueryHandler(set_referral_link, pattern='referral'))
+    application.add_handler(CallbackQueryHandler(cancel_campaign, pattern='cancel_campaign'))
+    application .add_handler(campaign_handler)
 
     # Iniciar o bot
     application.run_polling()
