@@ -1,4 +1,4 @@
-# Bot Telegram Campaigner
+# Bot Telegram Campanhas
 
 Este é um bot do Telegram desenvolvido em Python, que permite aos usuários criar campanhas de encaminhamento de mensagens em grupos do Telegram onde são administradores. O bot usa as bibliotecas `python-telegram-bot` e `telethon` para interagir com a API do Telegram, além de um agendador para automatizar o encaminhamento de mensagens.
 
@@ -13,7 +13,7 @@ Este é um bot do Telegram desenvolvido em Python, que permite aos usuários cri
 
 ## Pré-requisitos
 
-Antes de começar, você precisa ter o Python 3 instalado em seu ambiente. É recomendável usar um ambiente virtual para gerenciar as dependências do projeto.
+Antes de começar, você precisa ter o Python instalado em seu ambiente. É recomendável usar um ambiente virtual para gerenciar as dependências do projeto.
 
 ## Instalação
 
