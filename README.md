@@ -23,3 +23,9 @@ Antes de começar, você precisa ter o Python instalado em seu ambiente. É reco
    cd bot_telegram2024
 
 ##  GILDIVAN BRABO
+
+   ```bash
+cd bot_telegram2024
+
+   ```bash
+python bot.py
