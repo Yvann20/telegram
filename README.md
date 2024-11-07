@@ -5,7 +5,6 @@ Este é um bot do Telegram desenvolvido em Python, que permite aos usuários cri
 ## Funcionalidades
 
 - **Autenticação**: O bot autentica usuários usando um número de telefone e um código recebido via SMS.
-- **Listagem de Grupos**: Permite ao usuário listar todos os grupos em que é administrador.
 - **Encaminhamento de Mensagens**: Os usuários podem configurar uma campanha para encaminhar mensagens de um chat específico para múltiplos grupos.
 - **Configuração de Intervalos**: Permite definir um intervalo de tempo em minutos para o encaminhamento das mensagens.
 - **Estatísticas**: Exibe estatísticas sobre mensagens enviadas e campanhas ativas.
