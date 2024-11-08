@@ -21,10 +21,4 @@ Antes de começar, você precisa ter o Python instalado em seu ambiente. É reco
    git clone https://github.com/Yvann20/bot_telegram2024.git
    cd bot_telegram2024
 
-##  GILDIVAN BRABO
-
-   ```bash
-cd bot_telegram2024
-
-   ```bash
-python bot.py
+##  GILDIVAN BRABO DESDE 2019 EM BUSA FE DE UMSONHO
