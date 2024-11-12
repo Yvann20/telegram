@@ -1,5 +1,6 @@
 # Bot Telegram Campanhas
-GILDIVAN VAI DOMINAR CARAIII
+# GILDIVAN VAI DOMINAR CARAIII
+
 Este é um bot do Telegram desenvolvido em Python, que permite aos usuários criar campanhas de encaminhamento de mensagens em grupos do Telegram onde são administradores. O bot usa as bibliotecas `python-telegram-bot` e `telethon` para interagir com a API do Telegram, além de um agendador para automatizar o encaminhamento de mensagens.
 
 ## Funcionalidades
