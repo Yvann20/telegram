@@ -232,7 +232,7 @@ async def set_referral_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Função principal para configurar o bot
 def main():
     client.loop.run_until_complete(authenticate())
-    print("BOT CONECTADO TELEGRAM DO DONO @GILDIVANNX")
+    print("BOT CONECTADO")
 
     # Configuração do bot
     application = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -260,3 +260,4 @@ def main():
 if __name__ == '__main__':
     
     main()
+            
