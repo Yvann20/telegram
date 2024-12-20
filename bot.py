@@ -36,7 +36,7 @@ current_job = None
 
 # Estatísticas do bot
 statistics = {
-    'messages_sent': 0,
+    'messages_sent': 0, 
     'active_campaigns': 0,
 }
 
@@ -106,7 +106,7 @@ async def forward_message_with_formatting(context: ContextTypes.DEFAULT_TYPE):
 # Função para iniciar a campanha
 async def start_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global current_job, statistics
-    
+
     # Cancelar a campanha atual se existir
     if current_job is not None:
         current_job.schedule_removal()
@@ -121,7 +121,7 @@ async def start_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.message.edit_text('Envie o link da mensagem que deseja encaminhar:')
     print("Esperando o link da mensagem.")
 
-    return LINK  # Corrigido para estar aqui
+    return LINK
 
 # Função para definir o link da mensagem
 async def set_message_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -134,9 +134,6 @@ async def set_message_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Link configurado: {settings['message_link']}\nAgora envie o intervalo em minutos:")
     print("Esperando o intervalo.")
 
-    # Apagar a mensagem anterior com os botões
-    await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=update.message.message_id - 1)
-
     return INTERVAL
 
 # Função para definir o intervalo
@@ -147,11 +144,8 @@ async def set_interval(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     print("Intervalo recebido:", update.message.text)
 
-    # Remover o ponto final, se existir
-    interval_text = update.message.text.strip().rstrip('.')
-
     try:
-        interval = int(interval_text)
+        interval = int(update.message.text)
     except ValueError:
         await update.message.reply_text("Por favor, insira um número válido.")
         return INTERVAL
@@ -168,12 +162,6 @@ async def set_interval(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(f"SUCESSO... CONFIGURADO {interval} MINUTOS")
     print(f"Job de encaminhamento configurado para {interval} minutos.")
-
-    # Verifique se update.callback_query não é None antes de tentar acessar a mensagem
-    if update.callback_query and update.callback_query.message:
-        await update.callback_query.message.delete_reply_markup()
-    else:
-        print("Não foi possível acessar a mensagem do callback_query.")
 
     return ConversationHandler.END
 
@@ -203,17 +191,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     now = datetime.now()
     welcome_message = (
-        f"✨ 𝑩𝒆𝒎𝒗𝒊𝒏𝒅𝒐 𝒂𝒐 𝑴𝒆𝒖 𝑩𝒐𝒕 𝑰𝒏𝒄𝒓𝒊𝒗𝒆𝒍!✨\n\n"
-        f"🕒 Data e Hora de Entrada: {now.strftime('%d/%m/%Y %H:%M:%S')}\n"
-        f"🔑 Seu ID: {user_id}\n"
+        f"BEM-VINDO AO BOT!\n\n"
+        f"Data e Hora de Entrada: {now.strftime('%d/%m/%Y %H:%M:%S')}\n"
+        f"Seu ID: {user_id}\n"
         "👉 Toque no botão abaixo para começar sua jornada!"
     )
-    
+
     keyboard = [
-        [InlineKeyboardButton("🚀 𝙄𝙉𝙄𝘾𝙄𝘼𝙍 𝙐𝙈𝘼 𝙉𝙊𝙑𝘼 𝘾𝘼𝙈𝘗𝘼𝙉𝘼 🚀", callback_data='create_campaign')],
-        [InlineKeyboardButton("🛑 𝘾𝘼𝙉𝘾𝙀𝙇𝘼𝙍 𝘾𝘼𝙈𝙋𝘼𝙉𝙃𝘼 🛑", callback_data='cancel_campaign')],
-        [InlineKeyboardButton("📊   𝙑 𝙀𝙍 𝙀𝙎𝙏𝘼𝙏𝙄𝙎𝙏𝙄𝘾𝘼𝙎 𝘿𝘖 𝘉𝘖𝙏📊", callback_data='statistics')],
-        [InlineKeyboardButton(" 𝙇𝙄𝙉𝙆 𝘿𝙀 𝙍𝙀𝙁𝙀𝙍𝙀𝙉𝘾𝙄𝘼", callback_data='referral')],
+        [InlineKeyboardButton("🚀 INICIAR UMA NOVA CAMPANHA 🚀", callback_data='create_campaign')],
+        [InlineKeyboardButton("🛑 CANCELAR CAMPANHA 🛑", callback_data='cancel_campaign')],
+        [InlineKeyboardButton("📊 VER ESTATÍSTICAS DO BOT 📊", callback_data='statistics')],
+        [InlineKeyboardButton("LINK DE REFERÊNCIA", callback_data='referral')],
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -244,7 +232,7 @@ async def set_referral_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Função principal para configurar o bot
 def main():
     client.loop.run_until_complete(authenticate())
-    print("BOT CONECTADO telegram @gildivannx")
+    print("BOT CONECTADO TELEGRAM DO DONO @GILDIVANNX")
 
     # Configuração do bot
     application = ApplicationBuilder().token(BOT_TOKEN).build()
@@ -270,5 +258,5 @@ def main():
     application.run_polling()
 
 if __name__ == '__main__':
+    
     main()
-            
