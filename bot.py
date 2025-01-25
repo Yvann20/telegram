@@ -17,7 +17,7 @@ from telethon.errors import SessionPasswordNeededError
 import asyncio
 import pytz
 
-#  Carregar variáveis de ambiente do arquivo .env
+# ✌️Carregar variáveis de ambiente do arquivo .env
 load_dotenv()
 
 API_ID = os.getenv('API_ID')
