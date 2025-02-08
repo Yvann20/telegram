@@ -15,3 +15,5 @@ python-dateutil==2.9.0
 # Para gerenciamento de tarefas assíncronas, utilizado em 
 # conjunto com outras bibliotecas
 anyio==4.6.0
+# nova atualização do joque
+pip install "python-telegram-bot[job-queue]"
