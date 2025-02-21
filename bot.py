@@ -33,7 +33,7 @@ YOUR_PHONE = os.getenv('YOUR_PHONE')
 if not all([API_ID, API_HASH, BOT_TOKEN, YOUR_PHONE]):
     raise ValueError("Defina todas as variáveis de ambiente: API_ID, API_HASH, BOT_TOKEN, YOUR_PHONE.")
 
-client = TelegramClient('session_user', API_ID, API_HASH)
+client = TelegramClient('session_name', API_ID, API_HASH)
 
 # Estados da conversação
 LINK, INTERVAL, REFERRAL = range(3)
@@ -119,7 +119,7 @@ async def forward_message_with_formatting(context: ContextTypes.DEFAULT_TYPE):
             await asyncio.gather(*tasks)
             statistics['messages_sent'] += len(tasks)
             print(f"Mensagens encaminhadas: {len (tasks)}")
-            
+
     except Exception as e:
         print(f"Erro no encaminhamento: {e}")
     finally:
@@ -138,14 +138,14 @@ def manage_jobs(job_queue, user_id, interval):
         interval=interval * 60,
         first=0
     )
-    
+
     # Registra a campanha
     active_campaigns[user_id] = {
         'job': job,
         'start_time': time.time(),
         'interval': interval
     }
-    
+
     statistics['active_campaigns'] = len(active_campaigns)
 
 # Função para limpar jobs finalizados
@@ -155,11 +155,11 @@ async def cleanup_jobs(context: ContextTypes.DEFAULT_TYPE):
         user_id for user_id, data in active_campaigns.items()
         if now - data['start_time'] > (data['interval'] * 60 * 10)  # 10 ciclos
     ]
-    
+
     for user_id in expired_users:
         active_campaigns[user_id]['job'].schedule_removal()
         del active_campaigns[user_id]
-    
+
     if expired_users:
         statistics['active_campaigns'] = len(active_campaigns)
         print(f"Limpeza automática: {len(expired_users)} campanhas expiradas removidas")
@@ -167,7 +167,7 @@ async def cleanup_jobs(context: ContextTypes.DEFAULT_TYPE):
 # Handlers do Telegram
 async def start_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    
+
     if has_active_campaign(user_id):
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
@@ -175,7 +175,7 @@ async def start_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
             show_alert=True
         )
         return ConversationHandler.END
-        
+
     await update.callback_query.answer()
     await update.callback_query.edit_message_text('Envie o link da mensagem:')
     return LINK
@@ -199,7 +199,7 @@ async def set_interval(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cancel_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    
+
     if not has_active_campaign(user_id):
         await update.callback_query.answer()
         await update.callback_query.message.edit_text("❌ Nenhuma campanha ativa para cancelar.")
@@ -208,7 +208,7 @@ async def cancel_campaign(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Remove o job e limpa os dados
     active_campaigns[user_id]['job'].schedule_removal()
     del active_campaigns[user_id]
-    
+
     statistics['active_campaigns'] = len(active_campaigns)
     await update.callback_query.answer()
     await update.callback_query.message.edit_text("✅ Campanha cancelada com sucesso!")
